@@ -6,7 +6,8 @@
                input  [31:0] WD, 
                output [31:0] RD1, RD2,
                input  [4:0]  reg_sel,
-               output [31:0] reg_data);
+               output [31:0] reg_data
+               input  [2:0] LAddr);
 
   reg [31:0] rf[31:0];
 

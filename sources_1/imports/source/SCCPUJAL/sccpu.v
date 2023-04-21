@@ -7,7 +7,7 @@ module sccpu( clk, rst, instr, readdata, PC, MemWrite, aluout, writedata, reg_se
    input [31:0]  readdata;  // data from data memory
    
    output [31:0] PC;        // PC address
-   output        MemWrite;  // memory write
+   output [1:0]  MemWrite;  // memory write
    output [31:0] aluout;    // ALU output
    output [31:0] writedata; // data to data memory
    
@@ -76,15 +76,18 @@ module sccpu( clk, rst, instr, readdata, PC, MemWrite, aluout, writedata, reg_se
       .WD(WD), 
       .RD1(RD1), .RD2(writedata),
       .reg_sel(reg_sel),
-      .reg_data(reg_data) 
+      .reg_data(reg_data),
+      .LAddr(LAddr)
    );
    
    // mux for register data to write
+   // select target rf
    mux4 #(5) U_MUX4_GPR_A3 (
       .d0(rd), .d1(rt), .d2(5'b11111), .d3(5'b0), .s(GPRSel), .y(A3)
    );
    
    // mux for register address to write
+   // select data 
    mux4 #(32) U_MUX4_GPR_WD (
       .d0(aluout), .d1(readdata), .d2(PC + 4), .d3(32'b0), .s(WDSel), .y(WD)
    );

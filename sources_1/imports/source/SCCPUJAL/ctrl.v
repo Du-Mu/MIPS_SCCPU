@@ -13,7 +13,7 @@ module ctrl(Op, Funct, Zero,
    input        Zero;
    
    output       RegWrite; // control signal for register write
-   output       MemWrite; // control signal for memory write
+   output [1:0] MemWrite; // control signal for memory write
    output       EXTOp;    // control signal to signed extension
    output [2:0] ALUOp;    // ALU opertion
    output [1:0] NPCOp;    // next pc operation
@@ -46,7 +46,8 @@ module ctrl(Op, Funct, Zero,
    wire i_lh     =  Op[5]&~Op[4]&~Op[3]&~Op[2]&~Op[1]& Op[0]; // 100001
    wire i_lbu    =  Op[5]&~Op[4]&~Op[3]& Op[2]&~Op[1]&~Op[0]; // 100100
    wire i_lhu    =  Op[5]&~Op[4]&~Op[3]& Op[2]&~Op[1]& Op[0]; // 100101
-
+   wire i_sb     =  Op[5]&~Op[4]& Op[3]&~Op[2]&~Op[1]&~Op[0]; // 101000 
+   wire i_sh     =  Op[5]&~Op[4]& Op[3]&~Op[2]&~Op[1]& Op[0]; // 101001
 
 
   // j format
@@ -56,9 +57,15 @@ module ctrl(Op, Funct, Zero,
   // generate control signals
   assign RegWrite   = rtype | i_lw | i_addi | i_ori | i_jal | i_lb | i_lh | i_lbu | i_lhu; // register write
   
-  assign MemWrite   = i_sw;                           // memory write
-  assign ALUSrc     = i_lw | i_sw | i_addi | i_ori | i_lb | i_lh | i_lbu | i_lhu;   // ALU B is from instruction immediate
-  assign EXTOp      = i_addi | i_lw | i_sw | i_lb | i_lh | i_lbu | i_lhu;           // signed extension
+
+  // sw 1'b01
+  // sb 1'b10
+  // sh 1'b11
+  assign MemWrite[0] = i_sw | i_sh;
+  assign MemWrite[1] = i_sb | i_sh;                           
+  // memory write
+  assign ALUSrc     = i_lw | i_sw | i_addi | i_ori | i_lb | i_lh | i_lbu | i_lhu | i_sb | i_sh;   // ALU B is from instruction immediate
+  assign EXTOp      = i_addi | i_lw | i_sw | i_lb | i_lh | i_lbu | i_lhu | i_sb | i_sh;           // signed extension
 
   // GPRSel_RD   2'b00
   // GPRSel_RT   2'b01
@@ -86,7 +93,7 @@ module ctrl(Op, Funct, Zero,
   // ALU_OR    3'b100
   // ALU_SLT   3'b101
   // ALU_SLTU  3'b110
-  assign ALUOp[0] = i_add | i_lw | i_sw | i_addi | i_and | i_slt | i_addu;
+  assign ALUOp[0] = i_add | i_lw | i_sw | i_addi | i_and | i_slt | i_addu | i_lb | i_lh | i_lbu | i_lhu | i_sb | i_sh;
   assign ALUOp[1] = i_sub | i_beq | i_and | i_sltu | i_subu;
   assign ALUOp[2] = i_or | i_ori | i_slt | i_sltu;
 

@@ -22,7 +22,7 @@
 // memory IO bus
 
 module MIO_BUS(
-    input mem_w,
+    input [1:0]   mem_w,
     input [15:0]  sw_i,               // switch input
     input [31:0]  cpu_data_out,       // data from CPU
     input [31:0]  cpu_data_addr,      // address for CPU
@@ -32,7 +32,7 @@ module MIO_BUS(
     output reg [31:0]  ram_data_in,   // data to data memory
     output reg [6:0]   ram_addr,      // address for data memory
     output reg [31:0]  cpuseg7_data,  // cpu seg7 data (from sw instruction)
-    output reg ram_we,                // signal to write data memory
+    output reg [1:0]   ram_we,        // signal to write data memory
     output reg seg7_we                // signal to write seg7 display 
 );
 
@@ -45,7 +45,7 @@ module MIO_BUS(
     cpuseg7_data = 32'h0;
     cpu_data_in = 32'h0;
     seg7_we = 0;
-    ram_we = 0;
+    ram_we = 2'b00;
     
     case(cpu_data_addr[31:0])
       32'hffff0004: // switch

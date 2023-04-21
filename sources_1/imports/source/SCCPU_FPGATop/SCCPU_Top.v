@@ -10,7 +10,7 @@ module SCCPUSOC_Top(
    wire Clk_CPU;        // CPU clock
    wire [31:0]  instr;  // instruction
    wire [31:0]  PC;     // PC
-   wire MemWrite;       // memory write
+   wire [1:0]   MemWrite;       // memory write
    wire [31:0]  dm_din, dm_dout; // data 
    
    wire rst;
