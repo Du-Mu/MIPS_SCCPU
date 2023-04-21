@@ -4,7 +4,8 @@
 module ctrl(Op, Funct, Zero, 
             RegWrite, MemWrite,
             EXTOp, ALUOp, NPCOp, 
-            ALUSrc, GPRSel, WDSel
+            ALUSrc, GPRSel, WDSel,
+            LAddr
             );
             
    input  [5:0] Op;       // opcode
@@ -20,6 +21,8 @@ module ctrl(Op, Funct, Zero,
 
    output [1:0] GPRSel;   // general purpose register selection
    output [1:0] WDSel;    // (register) write data selection
+
+   output [2:0] LAddr; 
    
   // r format
    wire rtype  = ~|Op;
@@ -38,28 +41,36 @@ module ctrl(Op, Funct, Zero,
    wire i_lw   =  Op[5]&~Op[4]&~Op[3]&~Op[2]& Op[1]& Op[0]; // lw
    wire i_sw   =  Op[5]&~Op[4]& Op[3]&~Op[2]& Op[1]& Op[0]; // sw
    wire i_beq  = ~Op[5]&~Op[4]&~Op[3]& Op[2]&~Op[1]&~Op[0]; // beq
+   /*added by nemo*/
+   wire i_lb     =  Op[5]&~Op[4]&~Op[3]&~Op[2]&~Op[1]&~Op[0]; // 100000
+   wire i_lh     =  Op[5]&~Op[4]&~Op[3]&~Op[2]&~Op[1]& Op[0]; // 100001
+   wire i_lbu    =  Op[5]&~Op[4]&~Op[3]& Op[2]&~Op[1]&~Op[0]; // 100100
+   wire i_lhu    =  Op[5]&~Op[4]&~Op[3]& Op[2]&~Op[1]& Op[0]; // 100101
+
+
 
   // j format
    wire i_j    = ~Op[5]&~Op[4]&~Op[3]&~Op[2]& Op[1]&~Op[0];  // j
    wire i_jal  = ~Op[5]&~Op[4]&~Op[3]&~Op[2]& Op[1]& Op[0];  // jal
 
   // generate control signals
-  assign RegWrite   = rtype | i_lw | i_addi | i_ori | i_jal; // register write
+  assign RegWrite   = rtype | i_lw | i_addi | i_ori | i_jal | i_lb | i_lh | i_lbu | i_lhu; // register write
   
   assign MemWrite   = i_sw;                           // memory write
-  assign ALUSrc     = i_lw | i_sw | i_addi | i_ori;   // ALU B is from instruction immediate
-  assign EXTOp      = i_addi | i_lw | i_sw;           // signed extension
+  assign ALUSrc     = i_lw | i_sw | i_addi | i_ori | i_lb | i_lh | i_lbu | i_lhu;   // ALU B is from instruction immediate
+  assign EXTOp      = i_addi | i_lw | i_sw | i_lb | i_lh | i_lbu | i_lhu;           // signed extension
 
   // GPRSel_RD   2'b00
   // GPRSel_RT   2'b01
   // GPRSel_31   2'b10
-  assign GPRSel[0] = i_lw | i_addi | i_ori;
+  // select target rigister
+  assign GPRSel[0] = i_lw | i_addi | i_ori | i_lb | i_lh | i_lbu | i_lhu;
   assign GPRSel[1] = i_jal;
   
   // WDSel_FromALU 2'b00
   // WDSel_FromMEM 2'b01
   // WDSel_FromPC  2'b10 
-  assign WDSel[0] = i_lw;
+  assign WDSel[0] = i_lw | i_lb | i_lh | i_lbu | i_lhu;
   assign WDSel[1] = i_jal;
 
   // NPC_PLUS4   2'b00
@@ -78,5 +89,14 @@ module ctrl(Op, Funct, Zero,
   assign ALUOp[0] = i_add | i_lw | i_sw | i_addi | i_and | i_slt | i_addu;
   assign ALUOp[1] = i_sub | i_beq | i_and | i_sltu | i_subu;
   assign ALUOp[2] = i_or | i_ori | i_slt | i_sltu;
+
+  // lw    3'b000
+  // lb    3'b001
+  // lbu   3'b010
+  // lh    3'b011
+  // lhu   3'b100
+  assign LAddr[0] = i_lb | i_lbu;
+  assign LAddr[1] = i_lbu | i_lh;
+  assign LAddr[2] = i_lhu
 
 endmodule

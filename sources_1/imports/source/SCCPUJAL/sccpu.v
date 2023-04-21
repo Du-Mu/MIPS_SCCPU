@@ -25,6 +25,9 @@ module sccpu( clk, rst, instr, readdata, PC, MemWrite, aluout, writedata, reg_se
    wire        ALUSrc;      // ALU source for A
    wire        Zero;        // ALU ouput zero
 
+   // added by nemo
+   wire [2:0]  LAddr;       // load data len
+
    wire [31:0] NPC;         // next PC
 
    wire [4:0]  rs;          // rs
@@ -53,7 +56,7 @@ module sccpu( clk, rst, instr, readdata, PC, MemWrite, aluout, writedata, reg_se
       .Op(Op), .Funct(Funct), .Zero(Zero),
       .RegWrite(RegWrite), .MemWrite(MemWrite),
       .EXTOp(EXTOp), .ALUOp(ALUOp), .NPCOp(NPCOp), 
-      .ALUSrc(ALUSrc), .GPRSel(GPRSel), .WDSel(WDSel)
+      .ALUSrc(ALUSrc), .GPRSel(GPRSel), .WDSel(WDSel), .LAddr(LAddr)
    );
    
    // instantiation of PC
