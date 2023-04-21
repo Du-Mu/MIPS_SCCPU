@@ -24,6 +24,7 @@ module alu(A, B, ALUOp, C, Zero);
           `ALU_SRLV: c = A >> B;
           `ALU_SLLV: c = A << B;
           `ALU_SRAV: c = A >>> B;
+          `ALU_LUI:  c = B << 16;
           default:   C = A;                          // Undefined
       endcase
    end // end always
