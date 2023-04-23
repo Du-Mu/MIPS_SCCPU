@@ -6,8 +6,7 @@
                input  [31:0] WD, 
                output [31:0] RD1, RD2,
                input  [4:0]  reg_sel,
-               output [31:0] reg_data
-               input  [2:0] LAddr);
+               output [31:0] reg_data);
 
   reg [31:0] rf[31:0];
 
@@ -21,30 +20,8 @@
       
     else 
       if (RFWr) begin
-        if (LAddr==3'b000) begin
             rf[A3] <= WD;
             $display("r[%2d] = 0x%8X,", A3, WD);
-        end
-        else if (LAddr==3'b001) begin
-            rf[A3] <= WD[7]==0?{24'hffffff , WD[7:0]}:{24'h000000 , WD[7:0]};
-            $display("r[%2d] = 0x%8X,", A3, WD[7]==0?{24'hffffff , WD[7:0]}:{24'h000000 , WD[7:0]});
-        end
-        else if (LAddr==3'b010) begin
-                    rf[A3] <= {24'h000000 , WD[7:0]};
-                    $display("r[%2d] = 0x%8X,", A3, {24'h000000 , WD[7:0]});
-        end
-        else if (LAddr==3'b011) begin
-                    rf[A3] <= WD[15]==0?{16'hffff , WD[15:0]}:{16'h0000 , WD[15:0]};
-                    $display("r[%2d] = 0x%8X,", A3,  WD[15]==0?{16'hffff , WD[15:0]}:{16'h0000 , WD[15:0]});
-        end
-        else if (LAddr==3'b100) begin
-                    rf[A3] <= {16'h0000 , WD[15:0]};
-                    $display("r[%2d] = 0x%8X,", A3, {16'h0000 , WD[15:0]});
-        end
-        else begin
-                    rf[A3] <= WD;
-                    $display("r[%2d] = 0x%8X,", A3, WD);
-        end
       end
     
 

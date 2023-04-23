@@ -27,6 +27,7 @@ module sccpu( clk, rst, instr, readdata, PC, MemWrite, aluout, writedata, reg_se
 
    // added by nemo
    wire [2:0]  LAddr;       // load data len
+   wire [31:0] true_WD;
 
    wire [31:0] NPC;         // next PC
 
@@ -42,6 +43,10 @@ module sccpu( clk, rst, instr, readdata, PC, MemWrite, aluout, writedata, reg_se
    wire [31:0] WD;          // register write data
    wire [31:0] RD1;         // register data specified by rs
    wire [31:0] B;           // operator for ALU B
+   wire [31:0] A;
+   wire [4:0]  shamt;
+   wire ALUSrcA;
+
    
    assign Op = instr[31:26];  // instruction
    assign Funct = instr[5:0]; // funct
@@ -57,7 +62,7 @@ module sccpu( clk, rst, instr, readdata, PC, MemWrite, aluout, writedata, reg_se
       .Op(Op), .Funct(Funct), .Zero(Zero),
       .RegWrite(RegWrite), .MemWrite(MemWrite),
       .EXTOp(EXTOp), .ALUOp(ALUOp), .NPCOp(NPCOp), 
-      .ALUSrc(ALUSrc), .GPRSel(GPRSel), .WDSel(WDSel), .LAddr(LAddr)
+      .ALUSrc(ALUSrc), .GPRSel(GPRSel), .WDSel(WDSel), .LAddr(LAddr),.ALUSrcA(ALUSrcA)
    );
    
    // instantiation of PC
@@ -67,18 +72,17 @@ module sccpu( clk, rst, instr, readdata, PC, MemWrite, aluout, writedata, reg_se
    
    // instantiation of NPC
    NPC U_NPC ( 
-      .PC(PC), .NPCOp(NPCOp), .IMM(IMM), .NPC(NPC)
+      .PC(PC), .NPCOp(NPCOp), .IMM(IMM), .NPC(NPC),.RSV(RD1)
    );
    
    // instantiation of register file
    RF U_RF (
       .clk(clk), .rst(rst), .RFWr(RegWrite), 
       .A1(rs), .A2(rt), .A3(A3), 
-      .WD(WD), 
+      .WD(true_WD), 
       .RD1(RD1), .RD2(writedata),
       .reg_sel(reg_sel),
-      .reg_data(reg_data),
-      .LAddr(LAddr)
+      .reg_data(reg_data)
    );
    
    // mux for register data to write
@@ -97,15 +101,24 @@ module sccpu( clk, rst, instr, readdata, PC, MemWrite, aluout, writedata, reg_se
    EXT U_EXT ( 
       .Imm16(Imm16), .EXTOp(EXTOp), .Imm32(Imm32) 
    );
+   // mux for ALU A
+   mux2 #(32) U_MUX_ALU_A (
+      .d0(RD1), .d1(writedata), .s(ALUSrcA), .y(A)
+   );
+
+   mux8 #(32) U_MUX_RF_WD (
+      .d0(WD), .d1({24'h000000,WD[7:0]}), .d2({24'hffffff, WD[7:0]}),.d3({16'h0000,WD[15:0]}),.d4({16'hffff,WD[15:0]}),
+      .d5(WD),.d6(WD),.d7(WD),.s(LAddr),.y(true_WD)
+   );
    
    // mux for ALU B
    mux4 #(32) U_MUX_ALU_B (
-      .d0(writedata), .d1(Imm32), .d3({24'h0000, 3'b000 ,shamt}), d4(32'b0), .s(ALUSrc), .y(B)
+      .d0(writedata), .d1(Imm32), .d2({24'h0000, 3'b000 ,shamt}), .d3(32'd0), .s(ALUSrc), .y(B)
    );   
    
    // instantiation of alu
    alu U_ALU ( 
-      .A(RD1), .B(B), .ALUOp(ALUOp), .C(aluout), .Zero(Zero)
+      .A(A), .B(B), .ALUOp(ALUOp), .C(aluout), .Zero(Zero)
    );
 
 endmodule

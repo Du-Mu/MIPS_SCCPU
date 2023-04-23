@@ -18,7 +18,7 @@ module SCCPUSOC_Top(
 
    wire [31:0]  seg7_data; 
    wire [6:0]  ram_addr;
-   wire ram_we;
+   wire [1:0]  ram_we;
    wire seg7_we;
    
    wire [31:0]  cpu_data_out;       // data from CPU
